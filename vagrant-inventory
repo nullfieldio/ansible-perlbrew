@@ -1,2 +1,1 @@
-#ubuntu-vm ansible_ssh_host=192.168.88.22 ansible_ssh_port=22 ansible_ssh_user=vagrant ansible_ssh_private_key_file=~/.vagrant.d/insecure_private_key
-centos-vm ansible_ssh_host=192.168.88.33 ansible_ssh_port=22 ansible_ssh_user=vagrant ansible_ssh_private_key_file=~/.vagrant.d/insecure_private_key
+perlbrew-vm ansible_ssh_host=192.168.88.22 ansible_ssh_port=22 ansible_ssh_user=vagrant ansible_ssh_private_key_file=~/.vagrant.d/insecure_private_key
