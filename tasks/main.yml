@@ -94,15 +94,12 @@
 - block:
 
   - name: Use Perl {{ perl_version }}
-    shell: PERLBREW_BASHRC_VERSION=1 {{ perlbrew_bin }} switch {{ perlbrew_as | default(perl_version) }}
-
-  - name: find active perl version 
     shell: >
-        {{perlbrew_bin}} switch | grep 'perl-[[:alnum:].-][[:alnum:].-]*' | sed -e 's/^.*\(perl-[[:alnum:].-][[:alnum:].-]*\).*$/\1/' 
+        PERLBREW_SHELLRC_VERSION=1 {{ perlbrew_bin }} switch {{ perlbrew_as | default(perl_version) }} | grep --color=never 'perl-[[:alnum:].-][[:alnum:].-]*' | sed -E 's/^.*(perl-[[:alnum:].-][[:alnum:].-]*)\..*$/\1/'
+
     register: active_perl 
 
-  
-  - name: check if active perl version is correct
+  - name: Check if active perl version is correct
     debug: msg="ok, active perl version is {{ active_perl.stdout }}"
     when: active_perl.stdout == perl_version
 
