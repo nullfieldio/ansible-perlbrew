@@ -1,6 +1,6 @@
 ---
 
-- name: Package prerequisites
+- name: Package prerequisites Apt
   apt:
     pkg:
     - curl
@@ -16,7 +16,7 @@
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
   tags: [ perlbrew, prereq ]
 
-- name: Package prerequisites
+- name: Package prerequisites Yum
   yum:
     pkg:
     - curl
