@@ -1,32 +1,32 @@
 ---
 
 - name: Package prerequisites
-  apt: name='{{ item }}' state=present
-  with_items:
-  - curl
-  - gcc
-  - make
-  - perl-doc
-  - libmodule-build-perl
-  - perlbrew
-  - tar
-  - patch
-  - unzip
+  apt:
+    pkg:
+    - curl
+    - gcc
+    - make
+    - perl-doc
+    - libmodule-build-perl
+    - perlbrew
+    - tar
+    - patch
+    - unzip
   become: yes
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
   tags: [ perlbrew, prereq ]
 
 - name: Package prerequisites
-  yum: name='{{ item }}' state=present
-  with_items:
-  - curl
-  - gcc
-  - make
-  - bzip2
-  - perl
-  - tar
-  - patch
-  - unzip
+  yum:
+    pkg:
+    - curl
+    - gcc
+    - make
+    - bzip2
+    - perl
+    - tar
+    - patch
+    - unzip
   become: yes
   when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat'
 
