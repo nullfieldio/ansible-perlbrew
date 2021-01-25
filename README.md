@@ -44,7 +44,23 @@ Including an example of how to use your role (for instance, with variables passe
           perl_version: perl-5.26.1
           perlbrew_as: myawesomeperl
 
-Vagrant
+If you are using Ubuntu, you may want to add this to the beginning of your playbook to have it update your Ubuntu before trying to install, this could save you grief:
+
+#---
+#- hosts: all
+#  become: yes
+#
+  pre_tasks:
+  - name: Update cache before we get into anything
+    apt:
+      state: latest
+      force_apt_get: true
+      update_cache: true
+      cache_valid_time: 3600
+    become: yes
+    when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+[Vagrant](Vagrant)
 -------
 
 For testing the role in a virtual machine a 'Vagrantfile' and 'vagrant-inventory' file is provided (vagrantfiles for short). 

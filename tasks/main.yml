@@ -29,6 +29,7 @@
     - unzip
   become: yes
   when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat'
+  tags: [ perlbrew, prereq ]
 
 - name: Make PERLBREW_ROOT
   file: path='{{ perlbrew_root }}' owner='{{ perlbrew_user }}' mode=0755 state=directory
