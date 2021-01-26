@@ -31,24 +31,63 @@
   when: ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat'
   tags: [ perlbrew, prereq ]
 
+- name: Expand perlbrew_root variable {{ perlbrew_root }}
+  environment:
+    PERLBREW_ROOT: '{{ perlbrew_root }}'
+  command: echo {{ perlbrew_root }}
+  register: command_result
+  become: yes
+  become_user: '{{ perlbrew_user }}'
+  tags: [ perlbrew ]
+
+- name: Set expanded perlbrew_root variable
+  set_fact:
+    perlbrew_root_expanded: '{{ command_result.stdout }}'
+  tags: [ perlbrew ]
+
 - name: Make PERLBREW_ROOT
-  file: path='{{ perlbrew_root }}' owner='{{ perlbrew_user }}' mode=0755 state=directory
+  file: 
+    path: '{{ perlbrew_root_expanded }}' 
+    owner: '{{ perlbrew_user }}' 
+    mode: 0755 
+    state: directory
   become: yes
   become_user: '{{ perlbrew_user }}'
   tags: [ perlbrew ]
 
-- name: Install perlbrew
+- name: 'Download Perlbrew {{ perlbrew.install_script_url }}'
+  environment:
+    http_proxy: '{{proxy_env.http_proxy | default ("") }}'
+    https_proxy: '{{proxy_env.https_proxy | default ("") }}'
+    no_proxy:    '{{proxy_env.no_proxy | default ("") }}'
+  get_url: 
+    url: '{{ perlbrew.install_script_url | default ("http://install.perlbrew.pl") }}'
+    dest: /tmp/perlbrew_install_script 
+    force: True
+    mode: "0755"
   become: yes
   become_user: '{{ perlbrew_user }}'
-  shell: curl -L http://install.perlbrew.pl | bash creates="{{ perlbrew_root }}/bin/perlbrew"
-  register: install_perlbrew
+  tags:
+  - perlbrew
+
+- name: Run Perlbrew install {{ perlbrew.install_script_url }}
+  environment:
+    http_proxy:  '{{proxy_env.http_proxy | default ("") }}'
+    https_proxy: '{{proxy_env.https_proxy | default ("") }}'
+    no_proxy:    '{{proxy_env.no_proxy | default ("") }}'
+    PERLBREW_ROOT: '{{ perlbrew_root_expanded }}'
+  command: /tmp/perlbrew_install_script
+  register: command_result
+  become: yes
+  become_user: '{{ perlbrew_user }}'
+  args:
+    chdir: /tmp/
   tags: [ perlbrew ]
 
-#    perlbrew_bin: PERLBREW_ROOT={{ perlbrew_root }} {{ perlbrew_root}}/bin/perlbrew
-#    perlbrew_bin: {{ perlbrew_root}}/bin/perlbrew
-- set_fact:
-    perlbrew_bin: "{{ perlbrew_root}}/bin/perlbrew"
-  tags: [ perlbrew ]
+-  name: Set Perlbrew bin directory
+   set_fact:
+     perlbrew_bin: '{{ perlbrew_root_expanded}}/bin/perlbrew'
+   tags: [ perlbrew ]
 
 - name: Make sure ~/.bashrc exists
   file: path='~{{ perlbrew_user }}/.bashrc' state=touch mode=0644 force=no
@@ -58,7 +97,9 @@
 - name: Init ~/.bashrc
   become: yes
   become_user: '{{ perlbrew_user }}'
-  lineinfile: dest='{{ item.dest }}' line='{{ item.line }}'
+  lineinfile: 
+    dest: '{{ item.dest }}' 
+    line: '{{ item.line }}'
   with_items:
   - { dest: '~{{ perlbrew_user }}/.bashrc', line: 'export PERLBREW_ROOT={{ perlbrew_root }}' }
   - { dest: '~{{ perlbrew_user }}/.bashrc', line: '. ${PERLBREW_ROOT}/etc/bashrc' }
@@ -67,24 +108,36 @@
 
 
 - name: Show perl version requested
-  debug: msg="installing {{ perl_version }}"
+  debug: 
+    msg: "installing {{ perl_version }}"
 
-- name: Install PERL_VERSION (may take some time...)
+- name: Install {{ perl_version }} (may take some time...)
+  environment:
+    http_proxy:  '{{proxy_env.http_proxy | default ("") }}'
+    https_proxy: '{{proxy_env.https_proxy | default ("") }}'
+    no_proxy:    '{{proxy_env.no_proxy | default ("") }}'
+    PERLBREW_ROOT: '{{ perlbrew_root_expanded }}'
   become: yes
   become_user: '{{ perlbrew_user }}'
-  shell: "{{ perlbrew_bin }} install {{ perl_version }} --as {{ perlbrew_as | default(perl_version) }} --notest -Duseshrplib --force creates='{{ perlbrew_root }}/perls/{{ perlbrew_as | default(perl_version) }}'"
-  register: perlbrew_build_output
+  command: "{{ perlbrew_bin }} install {{ perl_version }} --as {{ perlbrew_as | default(perl_version) }} --notest -Duseshrplib --force creates='{{ perlbrew_root }}/perls/{{ perlbrew_as | default(perl_version) }}'"
+  register: command_result
   tags: [ perlbrew ]
 
 - name: Fail if Perl not installed correctly
-  fail: msg="Perlbrew could not build Perl. Check the build log"
-  when: "perlbrew_build_output.changed == True and  perlbrew_as | default(perl_version) + ' is successfully installed.' not in perlbrew_build_output.stdout_lines"
+  fail:
+    msg: "Perlbrew could not build Perl. Check the build log"
+  when: "command_result.changed == True and  perlbrew_as | default(perl_version) + ' is successfully installed.' not in command_result.stdout"
   tags: [ perlbrew ]
 
 - name: Install cpanm
+  environment:
+    http_proxy:  '{{proxy_env.http_proxy | default ("") }}'
+    https_proxy: '{{proxy_env.https_proxy | default ("") }}'
+    no_proxy:    '{{proxy_env.no_proxy | default ("") }}'
+    PERLBREW_ROOT: '{{ perlbrew_root_expanded }}'
   become: yes
   become_user: '{{ perlbrew_user }}'
-  shell: "{{ perlbrew_bin }} install-cpanm creates='{{ perlbrew_root }}/bin/cpanm'"
+  command: "{{ perlbrew_bin }} install-cpanm creates='{{ perlbrew_root }}/bin/cpanm'"
   tags: [ perlbrew ]
 
 
