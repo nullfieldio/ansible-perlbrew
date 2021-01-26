@@ -46,10 +46,11 @@ Including an example of how to use your role (for instance, with variables passe
 
 If you are using Ubuntu, you may want to add this to the beginning of your playbook to have it update your Ubuntu before trying to install, this could save you grief:
 
-#---
-#- hosts: all
-#  become: yes
-#
+~~~yaml
+---
+- hosts: all
+  become: yes
+
   pre_tasks:
   - name: Update cache before we get into anything
     apt:
@@ -59,6 +60,7 @@ If you are using Ubuntu, you may want to add this to the beginning of your playb
       cache_valid_time: 3600
     become: yes
     when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+~~~
 
 [Vagrant](Vagrant)
 -------
