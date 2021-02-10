@@ -5,6 +5,17 @@
   become: yes
   vars_files:
     - ./vars.yml
+
+  pre_tasks:
+  - name: Update cache before we get into anything
+    apt:
+      state: latest
+      force_apt_get: true
+      update_cache: true
+      cache_valid_time: 3600
+    become: yes
+    when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
   roles:
     # it is the directory relative to your current working directory under which the role files are located
     # ./ does not work - why ?
